@@ -10,7 +10,9 @@ import org.springframework.kafka.support.SendResult;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,7 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
 import java.util.concurrent.ExecutionException;
 
-@RestController
+@RestController()
+@CrossOrigin(origins = "*")
 @AllArgsConstructor
 public class ChatController {
     // Constructor based dependency injection. Instead, we could have used field based dependency injection also using
@@ -51,4 +54,14 @@ public class ChatController {
         return message;
     }
     //Configuration for Websockets is set on WebSocketConfig file
+
+    @MessageMapping("/newUser")
+    @SendTo("/topic/group")
+    public Message addUser(@Payload Message message,
+                           SimpMessageHeaderAccessor headerAccessor) {
+        // Add user in web socket session
+        headerAccessor.getSessionAttributes().put("username", message.getSender());
+        System.out.println("addUser method called - "+message.getSender());
+        return message;
+    }
 }
